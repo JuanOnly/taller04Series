@@ -4,13 +4,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const routerApi = require('./src/routes');
 const app = express();
+const { logErrors, errorHandler, boomErrorHandler } = require('./src/handler/errors.handlers')
 
 app.listen(port, () => console.log('Active port', port));
 
 mongoose
-  .connect(process.env.CONNECTION_STRING_MONGODB)
-  .then(() => console.log('Sucess connect with mongo'))
+  .connect(process.env.MONGODB_CONNECTION_STRING)
+  .then(() => console.log('Success, connected with mongo'))
   .catch((err) => console.error(err));
-
+  
 app.use(express.json());
+app.use(logErrors)
+app.use(errorHandler)
+app.use(boomErrorHandler)
 routerApi(app);

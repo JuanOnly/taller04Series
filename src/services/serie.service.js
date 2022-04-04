@@ -1,4 +1,6 @@
 const serieSchema = require('../models/serie.model');
+const Boom = require('@hapi/boom');
+
 class SeriesService {
   async createSerie(serie) {
     serie.save();
@@ -12,27 +14,46 @@ class SeriesService {
   }
 
   async showSerie(serieId) {
-    return serieSchema.findById({ _id: serieId });
+    return serieSchema.findById({ _id: serieId }).then((seriesFind) => {
+      if (!seriesFind) throw Boom.notFound('No se encontro la series');
+      return seriesFind;
+    });
   }
+
+  async showActor(ByRef) {
+    return serieSchema.find({ 'features_seasons.cast': ByRef });
+  }
+
+  async showDate(ByRef) {
+    return serieSchema.find({ 'features_seasons.premier_date': ByRef });
+  }
+
   async editSerie(
     serieId,
     serie,
-    number_episodes,
+    orginal_lenguage,
     number_seasons,
-    description
+    features_seasons
   ) {
-    return serieSchema.findById({ _id: serieId }).then(() => {
-      if (!serieId) throw Error('Serie no encontrada');
-      return serieSchema.updateOne(
-        { serieId },
-        { serie, number_episodes, number_seasons, description }
-      );
+    return serieSchema.findById({ _id: serieId }).then((seriesFind) => {
+        if (!seriesFind) throw Boom.notFound('No series found');
+        return serieSchema.updateOne(
+          { _id: serieId },
+          {
+            serie,
+            orginal_lenguage,
+            number_seasons,
+            features_seasons,
+          }
+        );
     });
   }
 
   async removeSerie(serieId) {
-    const serieRemove = serieSchema.findById({ _id: serieId });
-    return serieSchema.deleteOne(serieRemove);
+    return serieSchema.findById({ _id: serieId }).then((seriesFind) => {
+      if (!seriesFind) throw Boom.notFound('No se encontro la series');
+      return serieSchema.deleteOne(seriesFind);
+    });
   }
 }
 module.exports = SeriesService;
